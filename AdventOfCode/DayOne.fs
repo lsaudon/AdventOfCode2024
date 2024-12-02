@@ -1,43 +1,33 @@
 ﻿namespace AdventOfCode
-
 open Microsoft.VisualStudio.TestTools.UnitTesting
-
-module PartOne =
+module Common =
     let private parseLine (line: string) =
-        line.Trim().Split([| ' '; '\t' |], System.StringSplitOptions.RemoveEmptyEntries)
+        line.Trim().Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
         |> Array.map int
         |> fun parts -> parts.[0], parts.[1]
-    let private splitStringToLists (input: string) =
+
+    let splitStringToLists (input: string) =
         input.Trim().Split('\n')
         |> Array.map parseLine
         |> Array.unzip
-        |> fun (left, right) -> List.ofArray left, List.ofArray right
+        |> fun (l, r) -> List.ofArray l, List.ofArray r
+
+module PartOne =
     let calculateSumDiffs (input: string) =
-        let left, right = splitStringToLists input
-        List.zip (List.sort left) (List.sort right)
+        let left, right = Common.splitStringToLists input
+        List.zip (List.sort left) (List.sort right) 
         |> List.map (fun (l, r) -> abs (r - l))
         |> List.sum
 
 module PartTwo =
-    let private parseLine (line: string) =
-        line.Trim().Split([| ' '; '\t' |], System.StringSplitOptions.RemoveEmptyEntries)
-        |> Array.map int
-        |> fun parts -> parts.[0], parts.[1]
-    let private splitStringToLists (input: string) =
-        input.Trim().Split('\n')
-        |> Array.map parseLine
-        |> Array.unzip
-        |> fun (left, right) -> List.ofArray left, List.ofArray right
     let countAllLeftInRight (input: string) =
-        let left, right = splitStringToLists input
+        let left, right = Common.splitStringToLists input
         left
-        |> List.map (fun l -> l * (List.filter ((=) l) right |> List.length))
+        |> List.map (fun l -> l * (List.filter ((=) l) right |> List.length)) 
         |> List.sum
-        
 
 [<TestClass>]
 type DayOneTest () =
-
     [<TestMethod>]
     member this.PartOneExample () =
         let input = """
@@ -51,7 +41,6 @@ type DayOneTest () =
         let sumDiffs = PartOne.calculateSumDiffs input
         printfn "sumDiffs: %d" sumDiffs;
         Assert.AreEqual<int>(11, sumDiffs)
-
     [<TestMethod>]
     member this.PartOnePuzzle () =
         let input = """
@@ -1059,7 +1048,6 @@ type DayOneTest () =
         let sumDiffs = PartOne.calculateSumDiffs input
         printfn "sumDiffs: %d" sumDiffs;
         Assert.AreEqual<int>(1830467, sumDiffs)
-
     [<TestMethod>]
     member this.PartTwoExample () =
         let input = """
@@ -1073,7 +1061,6 @@ type DayOneTest () =
         let sumDiffs = PartTwo.countAllLeftInRight input
         printfn "sumDiffs: %d" sumDiffs;
         Assert.AreEqual<int>(31, sumDiffs)
-
     [<TestMethod>]
     member this.PartTwoPuzzle () =
         let input = """
