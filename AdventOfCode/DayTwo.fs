@@ -9,7 +9,9 @@ module DayTwo =
         |> Array.map (fun row -> row.Split(' ') |> Array.map int |> List.ofArray)
         |> List.ofArray
 
-    let private isValidDifference (a, b) = a - b >= 1 && a - b <= 3
+    let private isValidDifference (a, b) =
+        let diff = a - b
+        diff >= 1 && diff <= 3
 
     let private isIncreasingAndValid row =
         row |> List.pairwise |> List.forall (fun (a, b) -> a <= b && isValidDifference (b, a))
