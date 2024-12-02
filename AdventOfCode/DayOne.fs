@@ -1,27 +1,27 @@
 ﻿namespace AdventOfCode
+open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
-module Common =
+
+module DayOne =
     let private parseLine (line: string) =
         line.Trim().Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
         |> Array.map int
         |> fun parts -> parts.[0], parts.[1]
-
-    let splitStringToLists (input: string) =
-        input.Trim().Split('\n')
+    
+    let private splitStringToLists (input: string) =
+        input.Trim().Split(Environment.NewLine)
         |> Array.map parseLine
         |> Array.unzip
         |> fun (l, r) -> List.ofArray l, List.ofArray r
-
-module PartOne =
-    let calculateSumDiffs (input: string) =
-        let left, right = Common.splitStringToLists input
+    
+    let partOne (input: string) =
+        let left, right = splitStringToLists input
         List.zip (List.sort left) (List.sort right) 
         |> List.map (fun (l, r) -> abs (r - l))
         |> List.sum
-
-module PartTwo =
-    let countAllLeftInRight (input: string) =
-        let left, right = Common.splitStringToLists input
+    
+    let partTwo (input: string) =
+        let left, right = splitStringToLists input
         left
         |> List.map (fun l -> l * (List.filter ((=) l) right |> List.length)) 
         |> List.sum
@@ -1043,13 +1043,13 @@ type DayOneTest () =
 
     [<TestMethod>]
     member this.PartOneExample () =
-        Assert.AreEqual<int>(11, PartOne.calculateSumDiffs exampleInput)
+        Assert.AreEqual<int>(11, DayOne.partOne exampleInput)
     [<TestMethod>]
     member this.PartOnePuzzle () =
-        Assert.AreEqual<int>(1830467, PartOne.calculateSumDiffs puzzleInput)
+        Assert.AreEqual<int>(1830467, DayOne.partOne puzzleInput)
     [<TestMethod>]
     member this.PartTwoExample () =
-        Assert.AreEqual<int>(31, PartTwo.countAllLeftInRight exampleInput)
+        Assert.AreEqual<int>(31, DayOne.partTwo exampleInput)
     [<TestMethod>]
     member this.PartTwoPuzzle () =
-        Assert.AreEqual<int>(26674158, PartTwo.countAllLeftInRight puzzleInput)
+        Assert.AreEqual<int>(26674158, DayOne.partTwo puzzleInput)

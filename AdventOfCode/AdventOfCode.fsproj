@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="MSTestSettings.fs" />
     <Compile Include="DayOne.fs" />
+    <Compile Include="DayTwo.fs" />
   </ItemGroup>
 
   <ItemGroup>
