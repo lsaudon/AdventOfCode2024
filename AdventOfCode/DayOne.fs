@@ -1,36 +1,40 @@
 ﻿namespace AdventOfCode
+
 open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
 module DayOne =
-    let private parseLine (line: string) =
-        line.Trim().Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
-        |> Array.map int
-        |> fun parts -> parts.[0], parts.[1]
-    
-    let private splitStringToLists (input: string) =
-        input.Trim().Split(Environment.NewLine)
-        |> Array.map parseLine
-        |> Array.unzip
-        |> fun (l, r) -> List.ofArray l, List.ofArray r
-    
-    let partOne (input: string) =
-        let left, right = splitStringToLists input
-        List.zip (List.sort left) (List.sort right) 
-        |> List.map (fun (l, r) -> abs (r - l))
-        |> List.sum
-    
-    let partTwo (input: string) =
-        let left, right = splitStringToLists input
-        left
-        |> List.map (fun l -> l * (List.filter ((=) l) right |> List.length)) 
-        |> List.sum
+  let private parseLine (line: string) =
+    line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries)
+    |> Array.map int
+    |> fun parts -> parts[0], parts[1]
+
+  let private splitStringToLists (input: string) =
+    input.Trim().Split(Environment.NewLine)
+    |> Array.map parseLine
+    |> Array.unzip
+    |> fun (l, r) -> List.ofArray l, List.ofArray r
+
+  let partOne (input: string) =
+    let left, right = splitStringToLists input
+
+    List.zip (List.sort left) (List.sort right)
+    |> List.map (fun (l, r) -> abs (r - l))
+    |> List.sum
+
+  let partTwo (input: string) =
+    let left, right = splitStringToLists input
+
+    left
+    |> List.map (fun l -> l * (List.filter ((=) l) right |> List.length))
+    |> List.sum
 
 
 [<TestClass>]
-type DayOneTest () =
+type DayOneTest() =
 
-    let exampleInput = """
+  let exampleInput =
+    """
 3   4
 4   3
 2   5
@@ -38,7 +42,9 @@ type DayOneTest () =
 3   9
 3   3
 """
-    let puzzleInput = """
+
+  let puzzleInput =
+    """
 38665   13337
 84587   21418
 93374   50722
@@ -1041,15 +1047,18 @@ type DayOneTest () =
 39667   36867
 """
 
-    [<TestMethod>]
-    member this.PartOneExample () =
-        Assert.AreEqual<int>(11, DayOne.partOne exampleInput)
-    [<TestMethod>]
-    member this.PartOnePuzzle () =
-        Assert.AreEqual<int>(1830467, DayOne.partOne puzzleInput)
-    [<TestMethod>]
-    member this.PartTwoExample () =
-        Assert.AreEqual<int>(31, DayOne.partTwo exampleInput)
-    [<TestMethod>]
-    member this.PartTwoPuzzle () =
-        Assert.AreEqual<int>(26674158, DayOne.partTwo puzzleInput)
+  [<TestMethod>]
+  member this.PartOneExample() =
+    Assert.AreEqual<int>(11, DayOne.partOne exampleInput)
+
+  [<TestMethod>]
+  member this.PartOnePuzzle() =
+    Assert.AreEqual<int>(1830467, DayOne.partOne puzzleInput)
+
+  [<TestMethod>]
+  member this.PartTwoExample() =
+    Assert.AreEqual<int>(31, DayOne.partTwo exampleInput)
+
+  [<TestMethod>]
+  member this.PartTwoPuzzle() =
+    Assert.AreEqual<int>(26674158, DayOne.partTwo puzzleInput)

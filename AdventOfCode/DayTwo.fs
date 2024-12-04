@@ -1,36 +1,48 @@
 ﻿namespace AdventOfCode
+
 open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
 module DayTwo =
 
-    let private splitInputToIntLists (input: string) : int list list =
-        input.Trim().Split(Environment.NewLine)
-        |> Array.map (fun row -> row.Split(' ') |> Array.map int |> List.ofArray)
-        |> List.ofArray
+  let private splitInputToIntLists (input: string) : int list list =
+    input.Trim().Split(Environment.NewLine)
+    |> Array.map (fun row -> row.Split(' ') |> Array.map int |> List.ofArray)
+    |> List.ofArray
 
-    let private isValidDifference (a, b) =
-        let diff = a - b
-        diff >= 1 && diff <= 3
+  let private isValidDifference (a, b) =
+    let diff = a - b
+    diff >= 1 && diff <= 3
 
-    let private isIncreasingAndValid row =
-        row |> List.pairwise |> List.forall (fun (a, b) -> a <= b && isValidDifference (b, a))
+  let private isIncreasingAndValid row =
+    row
+    |> List.pairwise
+    |> List.forall (fun (a, b) -> a <= b && isValidDifference (b, a))
 
-    let private isDecreasingAndValid row =
-        row |> List.pairwise |> List.forall (fun (a, b) -> a >= b && isValidDifference (a, b))
+  let private isDecreasingAndValid row =
+    row
+    |> List.pairwise
+    |> List.forall (fun (a, b) -> a >= b && isValidDifference (a, b))
 
-    let private isSafe row = isIncreasingAndValid row || isDecreasingAndValid row
+  let private isSafe row =
+    isIncreasingAndValid row || isDecreasingAndValid row
 
-    let private isSafeWithDampener row =
-        isSafe row || List.mapi (fun i _ -> List.take i row @ List.skip (i + 1) row) row |> List.exists isSafe
+  let private isSafeWithDampener row =
+    isSafe row
+    || List.mapi (fun i _ -> List.take i row @ List.skip (i + 1) row) row
+       |> List.exists isSafe
 
-    let partOne input = splitInputToIntLists input |> List.filter isSafe |> List.length
-    let partTwo input = splitInputToIntLists input |> List.filter isSafeWithDampener |> List.length
+  let partOne input =
+    splitInputToIntLists input |> List.filter isSafe |> List.length
+
+  let partTwo input =
+    splitInputToIntLists input |> List.filter isSafeWithDampener |> List.length
 
 [<TestClass>]
-type DayTwoTest () =
+type DayTwoTest() =
 
-    let exampleInput = """
+  let exampleInput =
+    """
 7 6 4 2 1
 1 2 7 8 9
 9 7 6 2 1
@@ -38,7 +50,9 @@ type DayTwoTest () =
 8 6 4 4 1
 1 3 6 7 9
 """
-    let puzzleInput = """
+
+  let puzzleInput =
+    """
 65 68 71 72 71
 31 34 36 37 37
 80 83 84 86 87 90 92 96
@@ -1041,15 +1055,18 @@ type DayTwoTest () =
 37 34 31 29 27 25 22 19
 """
 
-    [<TestMethod>]
-    member this.PartOneExample () =
-        Assert.AreEqual<int>(2, DayTwo.partOne exampleInput)
-    [<TestMethod>]
-    member this.PartOnePuzzle () =
-        Assert.AreEqual<int>(269,  DayTwo.partOne puzzleInput)
-    [<TestMethod>]
-    member this.PartTwoExample () =
-        Assert.AreEqual<int>(4, DayTwo.partTwo exampleInput)
-    [<TestMethod>]
-    member this.PartTwoPuzzle () =
-        Assert.AreEqual<int>(337, DayTwo.partTwo puzzleInput)
+  [<TestMethod>]
+  member this.PartOneExample() =
+    Assert.AreEqual<int>(2, DayTwo.partOne exampleInput)
+
+  [<TestMethod>]
+  member this.PartOnePuzzle() =
+    Assert.AreEqual<int>(269, DayTwo.partOne puzzleInput)
+
+  [<TestMethod>]
+  member this.PartTwoExample() =
+    Assert.AreEqual<int>(4, DayTwo.partTwo exampleInput)
+
+  [<TestMethod>]
+  member this.PartTwoPuzzle() =
+    Assert.AreEqual<int>(337, DayTwo.partTwo puzzleInput)
