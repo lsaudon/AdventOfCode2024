@@ -13,6 +13,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="DayFive.fs" />
         <Compile Include="MSTestSettings.fs"/>
         <Compile Include="DayOne.fs"/>
         <Compile Include="DayTwo.fs"/>

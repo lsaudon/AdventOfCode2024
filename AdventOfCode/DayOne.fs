@@ -13,21 +13,20 @@ module DayOne =
     input.Trim().Split(Environment.NewLine)
     |> Array.map parseLine
     |> Array.unzip
-    |> fun (l, r) -> List.ofArray l, List.ofArray r
 
   let partOne (input: string) =
     let left, right = splitStringToLists input
 
-    List.zip (List.sort left) (List.sort right)
-    |> List.map (fun (l, r) -> abs (r - l))
-    |> List.sum
+    Array.zip (Array.sort left) (Array.sort right)
+    |> Array.map (fun (l, r) -> abs (r - l))
+    |> Array.sum
 
   let partTwo (input: string) =
     let left, right = splitStringToLists input
 
     left
-    |> List.map (fun l -> l * (List.filter ((=) l) right |> List.length))
-    |> List.sum
+    |> Array.map (fun l -> l * (Array.filter ((=) l) right |> Array.length))
+    |> Array.sum
 
 
 [<TestClass>]
