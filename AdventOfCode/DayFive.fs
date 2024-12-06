@@ -3,21 +3,25 @@
 open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
-module DayFive =   
-  let partOne (input: string) : int =
+module DayFive =
+  let private parseInput (input: string) =
     let sections = input.Trim().Split(Environment.NewLine + Environment.NewLine)
-    let rules = sections[0].Split(Environment.NewLine) |> Array.map (fun x -> x.Split("|") |> Array.map int)
-    let lines = sections[1].Split(Environment.NewLine) |> Array.map (fun x -> x.Split(",") |> Array.map int)
+    let rules = 
+      sections.[0].Split(Environment.NewLine) 
+      |> Array.map (fun x -> x.Split("|") |> Array.map int)
+    let lines = 
+      sections.[1].Split(Environment.NewLine) 
+      |> Array.map (fun x -> x.Split(",") |> Array.map int)
+    (rules, lines)
+
+  let partOne (input: string) : int =
+    let rules, lines = parseInput input
     let mutable results = []
     for line in lines do
       let mutable isValid = true
       let mutable rest = line
       for e in line do
-        if not isValid then
-          ()
-        elif Array.isEmpty rest then
-          ()
-        else
+        if isValid && not (Array.isEmpty rest) then
           rest <- rest |> Array.tail
           isValid <- rules |> Array.where (fun x -> (x[1].Equals(e) && rest |> Array.contains x[0])) |> Array.isEmpty     
       if isValid then
