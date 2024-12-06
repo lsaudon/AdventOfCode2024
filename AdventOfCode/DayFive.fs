@@ -13,9 +13,13 @@ module DayFive =
       let mutable isValid = true
       let mutable rest = line
       for e in line do
-        if isValid && Array.length rest > 0 then
-            rest <- rest |> Array.tail
-            isValid <- rules |> Array.where (fun x -> (x[1].Equals(e) && rest |> Array.contains x[0])) |> Array.isEmpty     
+        if not isValid then
+          ()
+        elif Array.isEmpty rest then
+          ()
+        else
+          rest <- rest |> Array.tail
+          isValid <- rules |> Array.where (fun x -> (x[1].Equals(e) && rest |> Array.contains x[0])) |> Array.isEmpty     
       if isValid then
         results <- line[line.Length/2] :: results
 
