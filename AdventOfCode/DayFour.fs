@@ -4,7 +4,7 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 
 module DayFour =
   let partOne (input: string) : int =
-    let grid = input.Split('\n') |> Array.map (fun line -> line.ToCharArray() |> Array.toList) |> Array.toList
+    let grid = input.Trim().Split('\n') |> Array.map (fun line -> line.ToCharArray() |> Array.toList) |> Array.toList
     let mutable value = 0
     let horizontal = grid.Length - 1
     for i in 0..horizontal do
