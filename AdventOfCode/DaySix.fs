@@ -17,6 +17,7 @@ module DaySix =
     | Guard of Direction
     | Obstruction
     | Visited
+    | Block
 
   type Area = Cell array array
 
@@ -33,6 +34,7 @@ module DaySix =
         | '#' -> Obstruction
         | 'X' -> Visited
         | '.' -> Empty
+        | 'O' -> Block
         | _ -> failwith "Caractère invalide"))
 
   let move (area: Area) : Area =
@@ -44,6 +46,7 @@ module DaySix =
       for column in 0..width do
         match area[row][column] with
         | Guard direction ->
+          // Vérifié que la prochaine case a déjà été visitée et un obstacle est à droite de la prochaine case
           let newRow, newColumn =
             match direction with
             | North -> row - 1, column
@@ -64,8 +67,8 @@ module DaySix =
             else
               newArea[row][column] <- Visited
               newArea[newRow][newColumn] <- Guard direction
+              
         | _ -> ()
-
     newArea
 
   let isGuardOnEdge (area: Area) =
@@ -81,6 +84,29 @@ module DaySix =
         | _ -> false))
     |> Array.concat
     |> Array.exists id
+    
+  let cellToChar (cell: Cell) : char =
+    match cell with
+    | Guard North -> '^'
+    | Guard South -> 'v'
+    | Guard East -> '>'
+    | Guard West -> '<'
+    | Obstruction -> '#'
+    | Visited -> 'X'
+    | Empty -> '.'
+    | Block -> '0'
+    | _ -> ' '
+
+  let printArea (area: Area) : Area =
+    let maxRow = area.Length - 1
+    let maxCol = area[0].Length - 1
+    
+    for row in 0 .. maxRow do
+      for col in 0 .. maxCol do
+        printf $"%c{area[row][col] |> cellToChar}"
+      printfn ""
+    printfn ""
+    area
 
   let rec play (area: Area) : Area =
     if isGuardOnEdge area then
@@ -95,12 +121,21 @@ module DaySix =
     |> Array.concat
     |> Array.filter (fun cell ->
       match cell with
-      | Visited -> true
-      | Guard _ -> true
+      | Visited | Guard _ | Block -> true
       | _ -> false)
     |> Array.length
 
-  let partTwo (input: string) : int = 0
+  let partTwo (input: string) : int =
+    input
+    |> parse
+    |> play
+    |> printArea
+    |> Array.concat
+    |> Array.filter (fun cell ->
+      match cell with
+      | Block -> true
+      | _ -> false)
+    |> Array.length
 
 [<TestClass>]
 type DaySixTest() =
@@ -260,8 +295,8 @@ type DaySixTest() =
 
   [<TestMethod>]
   member this.PartTwoExample() =
-    Assert.AreEqual<int>(0, DaySix.partTwo exampleInput)
+    Assert.AreEqual<int>(6, DaySix.partTwo exampleInput)
 
   [<TestMethod>]
   member this.PartTwoPuzzle() =
-    Assert.AreEqual<int>(0, DaySix.partTwo puzzleInput)
+    Assert.AreEqual<int>(6, DaySix.partTwo puzzleInput)
