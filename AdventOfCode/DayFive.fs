@@ -4,60 +4,61 @@ open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
 module DayFive =
-  let private parseInput (input: string) =
-    let sections = input.Trim().Split(Environment.NewLine + Environment.NewLine)
-    let rules = 
-      sections.[0].Split(Environment.NewLine) 
-      |> Array.map (fun x -> x.Split("|") |> Array.map int)
-    let lines = 
-      sections.[1].Split(Environment.NewLine) 
-      |> Array.map (fun x -> x.Split(",") |> Array.map int)
-    (rules, lines)
-
-  let partOne (input: string) : int =
-    let rules, lines = parseInput input
-    let mutable results = []
-    for line in lines do
-      let mutable isValid = true
-      let mutable rest = line
-      for e in line do
-        if isValid && not (Array.isEmpty rest) then
-          rest <- rest |> Array.tail
-          isValid <- rules |> Array.exists (fun x -> (x[1].Equals(e) && rest |> Array.contains x[0])) |> not 
-      if isValid then
-        results <- line[line.Length/2] :: results
-
-    results |> List.sum
-
-  let sort (a: int) (b: int) =
-    if a = 0 then
-        -1
-    else
-        1
-  
-  let partTwo (input: string) : int =
-    let rules, lines = parseInput input
-    let mutable results = []
-    for line in lines do
-      let mutable isValid = true
-      let mutable rest = line
-      for e in line do
-        if isValid && not (Array.isEmpty rest) then
-          rest <- rest |> Array.tail
-          isValid <- rules |> Array.exists (fun x -> (x[1].Equals(e) && rest |> Array.contains x[0])) |> not   
-      if not isValid then
-        let lineSorted = line
-                         |> Array.sortWith (fun a b ->
-                           if (rules |> Array.exists (fun t -> t[0].Equals(a) && t[1].Equals(b)) |> not) then
-                             1
-                           elif (rules |> Array.exists (fun t -> t[1].Equals(a) && t[0].Equals(b)) |> not) then
-                             -1
-                           else
-                             0
-                         )
-        results <- lineSorted[lineSorted.Length/2] :: results
-
-    results |> List.sum
+    type Rule = { Left: int; Right: int }
+    type Line = int array
+    
+    let parseRules (input: string) =
+        input.Split(Environment.NewLine)
+        |> Array.map (fun line -> 
+            let parts = line.Split("|") |> Array.map int
+            { Left = parts.[0]; Right = parts.[1] })
+    
+    let parseLines (input: string) =
+        input.Split(Environment.NewLine)
+        |> Array.map (fun line -> line.Split(",") |> Array.map int)
+    
+    let parseInput (input: string) =
+        let sections = input.Trim().Split(Environment.NewLine + Environment.NewLine)
+        let rules = parseRules sections.[0]
+        let lines = parseLines sections.[1]
+        (rules, lines)
+    
+    let isValidSequence (rules: Rule array) (line: Line) =
+        let rec check rest =
+            match rest with
+            | [||] -> true
+            | arr -> 
+                let current = arr.[0]
+                let remaining = arr.[1..]
+                not (rules |> Array.exists (fun r -> 
+                    r.Right = current && Array.contains r.Left remaining))
+                && check remaining
+        check line
+    
+    let findMiddleElement (line: Line) = line.[line.Length / 2]
+    
+    let sortLineByRules (rules: Rule array) (line: Line) =
+        line |> Array.sortWith (fun a b ->
+            if not (rules |> Array.exists (fun r -> r.Left = a && r.Right = b)) then 1
+            elif not (rules |> Array.exists (fun r -> r.Right = a && r.Left = b)) then -1
+            else 0)
+    
+    let partOne (input: string) : int =
+        let rules, lines = parseInput input
+        lines 
+        |> Array.filter (isValidSequence rules)
+        |> Array.map findMiddleElement
+        |> Array.sum
+    
+    let partTwo (input: string) : int =
+        let rules, lines = parseInput input
+        lines 
+        |> Array.filter (not << isValidSequence rules)
+        |> Array.map (fun line -> 
+            line 
+            |> sortLineByRules rules 
+            |> findMiddleElement)
+        |> Array.sum
 
 [<TestClass>]
 type DayFiveTest() =
