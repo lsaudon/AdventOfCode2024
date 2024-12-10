@@ -23,13 +23,41 @@ module DayFive =
       for e in line do
         if isValid && not (Array.isEmpty rest) then
           rest <- rest |> Array.tail
-          isValid <- rules |> Array.where (fun x -> (x[1].Equals(e) && rest |> Array.contains x[0])) |> Array.isEmpty     
+          isValid <- rules |> Array.exists (fun x -> (x[1].Equals(e) && rest |> Array.contains x[0])) |> not 
       if isValid then
         results <- line[line.Length/2] :: results
 
     results |> List.sum
 
-  let partTwo (input: string) : int = 0
+  let sort (a: int) (b: int) =
+    if a = 0 then
+        -1
+    else
+        1
+  
+  let partTwo (input: string) : int =
+    let rules, lines = parseInput input
+    let mutable results = []
+    for line in lines do
+      let mutable isValid = true
+      let mutable rest = line
+      for e in line do
+        if isValid && not (Array.isEmpty rest) then
+          rest <- rest |> Array.tail
+          isValid <- rules |> Array.exists (fun x -> (x[1].Equals(e) && rest |> Array.contains x[0])) |> not   
+      if not isValid then
+        let lineSorted = line
+                         |> Array.sortWith (fun a b ->
+                           if (rules |> Array.exists (fun t -> t[0].Equals(a) && t[1].Equals(b)) |> not) then
+                             1
+                           elif (rules |> Array.exists (fun t -> t[1].Equals(a) && t[0].Equals(b)) |> not) then
+                             -1
+                           else
+                             0
+                         )
+        results <- lineSorted[lineSorted.Length/2] :: results
+
+    results |> List.sum
 
 [<TestClass>]
 type DayFiveTest() =
@@ -1454,4 +1482,4 @@ type DayFiveTest() =
 
   [<TestMethod>]
   member this.PartTwoPuzzle() =
-    Assert.AreEqual<int>(123, DayFive.partTwo puzzleInput)
+    Assert.AreEqual<int>(6319, DayFive.partTwo puzzleInput)
