@@ -1,6 +1,7 @@
 ﻿namespace AdventOfCode
 
 open System
+open System.Text.RegularExpressions
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
 module DaySix =
@@ -23,20 +24,27 @@ module DaySix =
 
   let parse (input: string) : Area =
     input.Trim().Split(Environment.NewLine)
-    |> Array.mapi (fun i x ->
+    |> Array.map (fun x ->
       x.ToCharArray()
-      |> Array.mapi (fun j y ->
+      |> Array.map (fun y ->
         match y with
         | '^' -> Guard North
-        | 'v' -> Guard South
-        | '>' -> Guard East
-        | '<' -> Guard West
         | '#' -> Obstruction
-        | 'X' -> Visited
         | '.' -> Empty
-        | 'O' -> Block
         | _ -> failwith "Caractère invalide"))
 
+  let cellToChar (cell: Cell) : char =
+    match cell with
+    | Guard North -> '^'
+    | Guard South -> 'v'
+    | Guard East -> '>'
+    | Guard West -> '<'
+    | Obstruction -> '#'
+    | Visited -> 'X'
+    | Empty -> '.'
+    | Block -> '0'
+    | _ -> ' '
+  
   let move (area: Area) : Area =
     let height = (area |> Array.length) - 1
     let width = (area[0] |> Array.length) - 1
@@ -46,14 +54,13 @@ module DaySix =
       for column in 0..width do
         match area[row][column] with
         | Guard direction ->
-          // Vérifié que la prochaine case a déjà été visitée et un obstacle est à droite de la prochaine case
           let newRow, newColumn =
             match direction with
             | North -> row - 1, column
             | South -> row + 1, column
             | West -> row, column - 1
             | East -> row, column + 1
-
+          
           if newRow >= 0 && newRow <= width && newColumn >= 0 && newColumn <= height then
             if area[newRow][newColumn] = Obstruction then
               let newDirection =
@@ -65,9 +72,17 @@ module DaySix =
 
               newArea[row][column] <- Guard newDirection
             else
-              newArea[row][column] <- Visited
+              let list = match direction with
+                         | South -> [0 .. newColumn-1] |> List.rev |> List.map(fun i -> newArea[newRow][i])
+                         | North -> [newColumn+1 .. width] |> List.map(fun i -> newArea[newRow][i])
+                         | West  -> [0 .. newRow-1] |> List.rev |> List.map(fun i -> newArea[i][newColumn])
+                         | East  -> [newRow+1 .. height] |> List.map(fun i -> newArea[i][newColumn])
+              let value = list |> List.map (fun t -> t |> cellToChar)|> List.map string |> String.concat ""
+              if Regex.IsMatch(value, @"^[^#]*X#") then
+                newArea[row][column] <- Block
+              else
+                newArea[row][column] <- Visited
               newArea[newRow][newColumn] <- Guard direction
-              
         | _ -> ()
     newArea
 
@@ -85,17 +100,7 @@ module DaySix =
     |> Array.concat
     |> Array.exists id
     
-  let cellToChar (cell: Cell) : char =
-    match cell with
-    | Guard North -> '^'
-    | Guard South -> 'v'
-    | Guard East -> '>'
-    | Guard West -> '<'
-    | Obstruction -> '#'
-    | Visited -> 'X'
-    | Empty -> '.'
-    | Block -> '0'
-    | _ -> ' '
+
 
   let printArea (area: Area) : Area =
     let maxRow = area.Length - 1
