@@ -12,12 +12,17 @@ module DaySix =
     | South
     | East
     | West
+    
+  type Way =
+    | Horizontal
+    | Vertical
+    | Both
 
   type Cell =
     | Empty
     | Guard of Direction
     | Obstruction
-    | Visited
+    | Visited of Way
     | Block
 
   type Area = Cell array array
@@ -40,7 +45,9 @@ module DaySix =
     | Guard East -> '>'
     | Guard West -> '<'
     | Obstruction -> '#'
-    | Visited -> 'X'
+    | Visited Vertical -> '|'
+    | Visited Horizontal -> '-'
+    | Visited Both -> '+'
     | Empty -> '.'
     | Block -> '0'
     | _ -> ' '
@@ -72,16 +79,28 @@ module DaySix =
 
               newArea[row][column] <- Guard newDirection
             else
-              let list = match direction with
-                         | South -> [0 .. newColumn-1] |> List.rev |> List.map(fun i -> newArea[newRow][i])
-                         | North -> [newColumn+1 .. width] |> List.map(fun i -> newArea[newRow][i])
-                         | West  -> [0 .. newRow-1] |> List.rev |> List.map(fun i -> newArea[i][newColumn])
-                         | East  -> [newRow+1 .. height] |> List.map(fun i -> newArea[i][newColumn])
-              let value = list |> List.map (fun t -> t |> cellToChar)|> List.map string |> String.concat ""
-              if Regex.IsMatch(value, @"^[^#]*X#") then
-                newArea[row][column] <- Block
+              let neighbor =
+                match direction with
+                | North -> newArea[row][column+1] = Visited Horizontal || newArea[row][column+1] = Visited Both
+                | South -> newArea[row][column-1] = Visited Horizontal || newArea[row][column-1] = Visited Both
+                | West ->  newArea[row-1][column] = Visited Vertical || newArea[row-1][column] = Visited Both
+                | East ->  newArea[row+1][column] = Visited Vertical || newArea[row+1][column] = Visited Both
+              if neighbor then
+                newArea[row][column] <- Visited Both
               else
-                newArea[row][column] <- Visited
+                newArea[row][column] <- Visited (match direction with
+                                                | South -> Vertical
+                                                | North -> Vertical
+                                                | East -> Horizontal
+                                                | West -> Horizontal)
+              let list = match direction with
+                         | South -> [0 .. newColumn-1] |> List.rev |> List.map(fun i -> newArea[newRow][i]) |> List.exists (fun t -> t = Visited Horizontal)
+                         | North -> [newColumn+1 .. width] |> List.map(fun i -> newArea[newRow][i]) |> List.exists (fun t -> t = Visited Horizontal)
+                         | West  -> [0 .. newRow-1] |> List.rev |> List.map(fun i -> newArea[i][newColumn]) |> List.exists (fun t -> t = Visited Vertical)
+                         | East  -> [newRow+1 .. height] |> List.map(fun i -> newArea[i][newColumn]) |> List.exists (fun t -> t = Visited Vertical)
+              if list then
+                printfn "%i %i" row column
+                newArea[row][column] <- Block
               newArea[newRow][newColumn] <- Guard direction
         | _ -> ()
     newArea
@@ -126,7 +145,7 @@ module DaySix =
     |> Array.concat
     |> Array.filter (fun cell ->
       match cell with
-      | Visited | Guard _ | Block -> true
+      | Visited _ | Guard _ | Block -> true
       | _ -> false)
     |> Array.length
 
