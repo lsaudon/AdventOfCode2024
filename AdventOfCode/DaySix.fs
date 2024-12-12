@@ -94,12 +94,13 @@ module DaySix =
                                                 | East -> Horizontal
                                                 | West -> Horizontal)
               let list = match direction with
-                         | South -> [0 .. newColumn-1] |> List.rev |> List.map(fun i -> newArea[newRow][i]) |> List.exists (fun t -> t = Visited Horizontal)
-                         | North -> [newColumn+1 .. width] |> List.map(fun i -> newArea[newRow][i]) |> List.exists (fun t -> t = Visited Horizontal)
-                         | West  -> [0 .. newRow-1] |> List.rev |> List.map(fun i -> newArea[i][newColumn]) |> List.exists (fun t -> t = Visited Vertical)
-                         | East  -> [newRow+1 .. height] |> List.map(fun i -> newArea[i][newColumn]) |> List.exists (fun t -> t = Visited Vertical)
-              if list then
-                printfn "%i %i" row column
+                         | South -> [0 .. column-1] |> List.rev |> List.map(fun i -> newArea[row+1][i])
+                         | North -> [column+1 .. width] |> List.map(fun i -> newArea[row-1][i])
+                         | West  -> [0 .. row-1] |> List.rev |> List.map(fun i -> newArea[i][column-1])
+                         | East  -> [row+1 .. height] |> List.map(fun i -> newArea[i][column+1])
+              let value = list |> List.map (fun t -> t |> cellToChar)|> List.map string |> String.concat ""
+              if Regex.IsMatch(value, @"^[^#]*\+#") then
+                printfn $"%i{row} %i{column} %i{newRow} %i{newColumn}"
                 newArea[row][column] <- Block
               newArea[newRow][newColumn] <- Guard direction
         | _ -> ()
