@@ -4,11 +4,15 @@ open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
 module DaySix =
+  let mutable maxRow: int = 0
+  let mutable maxCol: int = 0
+  
   type Direction =
     | North
     | South
     | East
     | West
+
     member this.Turn =
       match this with
       | North -> East
@@ -62,23 +66,6 @@ module DaySix =
   let isObstruction (map: Map<Position, Cell>) (position: Position) : bool =
     map |> Map.exists (fun k v -> k = position && v = Obstruction)
 
-  let guardMove (map: Map<Position, Cell>) (history: GuardHistory list) : Map<Position, Cell> * GuardHistory list =
-    match map |> findGuard with
-    | None -> map, history
-    | Some(p, d) ->
-      let newP = p.Move d
-      if isObstruction map newP then
-        let newD = d.Turn
-        let newGuard = (Guard(p, newD))
-        let newMap = map |> Map.remove p |> Map.add p newGuard
-        let newHistory = { Position = p; Direction = d } :: history
-        newMap, newHistory
-      else
-        let newGuard = (Guard(newP, d))
-        let newMap = map |> Map.remove p |> Map.add newP newGuard
-        let newHistory = { Position = p; Direction = d } :: history
-        newMap, newHistory
-
   let private getDimensions (map: Map<Position, Cell>) =
     let positions = map |> Map.keys |> Seq.toList
     let maxRow = positions |> List.map _.Row |> List.max
@@ -110,25 +97,123 @@ module DaySix =
       |> String
       |> printfn "%s")
 
-  let isInBounds (maxRow: int) (maxCol: int) (guard: GuardHistory) : bool =
-    let position = guard.Position
+  let isInBounds (position: Position) : bool =
     let row = position.Row
     let col = position.Column
     row >= 0 && row <= maxRow && col >= 0 && col <= maxCol
 
-  let partOne (input: string) : int =
-    let mutable map = input |> parse
-    let (maxRow, maxCol) = getDimensions map
-    let mutable history = []
-    let mutable guardInBounds = true
+  module PartOne =
+    let guardMove (map: Map<Position, Cell>) (history: GuardHistory list) : Map<Position, Cell> * GuardHistory list =
+      match map |> findGuard with
+      | None -> map, history
+      | Some(p, d) ->
+        let newP = p.Move d
 
-    while guardInBounds do
-      let newMap, newHistory = guardMove map history
-      map <- newMap
-      history <- newHistory
-      guardInBounds <- isInBounds maxRow maxCol history.Head
+        if isObstruction map newP then
+          let newD = d.Turn
+          let newGuard = (Guard(p, newD))
+          let newMap = map |> Map.remove p |> Map.add p newGuard
+          let newHistory = { Position = p; Direction = d } :: history
+          newMap, newHistory
+        else
+          let newGuard = (Guard(newP, d))
+          let newMap = map |> Map.remove p |> Map.add newP newGuard
+          let newHistory = { Position = p; Direction = d } :: history
+          newMap, newHistory
 
-    history |> List.distinctBy _.Position |> (fun lst -> List.length lst - 1)
+    let run (input: string) : int =
+      let mutable map = input |> parse
+      let (row, col) = getDimensions map
+      maxRow <- row
+      maxCol <- col
+      let mutable history = []
+      let mutable guardInBounds = true
+
+      while guardInBounds do
+        let newMap, newHistory = guardMove map history
+        map <- newMap
+        history <- newHistory
+        guardInBounds <- isInBounds history.Head.Position
+
+      history |> List.distinctBy _.Position |> (fun lst -> List.length lst - 1)
+
+  module PartTwo =
+    let guardMove
+      (map: Map<Position, Cell>)
+      (history: GuardHistory list)
+      (virtualObstruction: int)
+      : Map<Position, Cell> * GuardHistory list * int =
+      match map |> findGuard with
+      | None -> map, history, virtualObstruction
+      | Some(p, d) ->
+        let newP = p.Move d
+
+        if isObstruction map newP then
+          let newD = d.Turn
+          let newGuard = (Guard(p, newD))
+          let newMap = map |> Map.remove p |> Map.add p newGuard
+          let newHistory = { Position = p; Direction = d } :: history
+          newMap, newHistory, virtualObstruction
+        else
+          let newGuard = (Guard(newP, d))
+          let newMap = map |> Map.remove p |> Map.add newP newGuard
+          let newHistory = { Position = p; Direction = d } :: history
+          let neighborsOnTheRight = match d with
+                                    | North -> East
+                                    | South -> West
+                                    | East -> South
+                                    | West -> North
+          let mutable newVirtualObstruction = virtualObstruction
+          let mutable stopSearch = false
+          let mutable neighborsPosition = match d with
+                                          | North -> { Row = newP.Row;     Column = newP.Column + 1 }
+                                          | South -> { Row = newP.Row;     Column = newP.Column - 1 }
+                                          | East ->  { Row = newP.Row + 1; Column = newP.Column }
+                                          | West ->  { Row = newP.Row - 1; Column = newP.Column }
+          while not stopSearch && isInBounds neighborsPosition do
+            let hasNeighbors = history |> List.contains { Position = neighborsPosition; Direction = neighborsOnTheRight }
+            if hasNeighbors then
+              newVirtualObstruction <- virtualObstruction + 1
+              stopSearch <- true
+            else
+              let e = map |> Map.tryFind neighborsPosition
+              match e with
+              | None -> neighborsPosition <- match d with
+                                     | North -> { Row = neighborsPosition.Row;     Column = neighborsPosition.Column + 1 }
+                                     | South -> { Row = neighborsPosition.Row;     Column = neighborsPosition.Column - 1 }
+                                     | East ->  { Row = neighborsPosition.Row + 1; Column = neighborsPosition.Column }
+                                     | West ->  { Row = neighborsPosition.Row - 1; Column = neighborsPosition.Column }
+              | Some cell -> match cell with
+                             | Guard _ -> ()
+                             | Obstruction ->
+                               stopSearch <- true
+                             | Empty ->
+                               neighborsPosition <- match d with
+                                                             | North -> { Row = neighborsPosition.Row;     Column = neighborsPosition.Column + 1 }
+                                                             | South -> { Row = neighborsPosition.Row;     Column = neighborsPosition.Column - 1 }
+                                                             | East ->  { Row = neighborsPosition.Row + 1; Column = neighborsPosition.Column }
+                                                             | West ->  { Row = neighborsPosition.Row - 1; Column = neighborsPosition.Column }
+          newMap, newHistory, newVirtualObstruction
+
+    let run (input: string) : int =
+      let mutable map = input |> parse
+      let (row, col) = getDimensions map
+      maxRow <- row
+      maxCol <- col
+      let mutable history = []
+      let mutable guardInBounds = true
+      let mutable virtualObstruction = 0
+
+      while guardInBounds do
+        let newMap, newHistory, newVirtualObstruction =
+          guardMove map history virtualObstruction
+
+        map <- newMap
+        history <- newHistory
+        virtualObstruction <- newVirtualObstruction
+        guardInBounds <- isInBounds history.Head.Position
+
+      virtualObstruction
 
 [<TestClass>]
 type DaySixTest() =
@@ -276,12 +361,21 @@ type DaySixTest() =
 ..........................#................................#...........#..........................................................
 ...#.....#....................#.....................#...#.....#.............................#.#....#.....#.#.................#....
 ............................#...#........#......................................................................#.....#...........
-............#..........##..................#.............................................................#.....#..#..............."""
+............#..........##..................#.............................................................#.....#..#...............
+"""
 
   [<TestMethod>]
   member this.PartOneExample() =
-    Assert.AreEqual<int>(41, DaySix.partOne exampleInput)
+    Assert.AreEqual<int>(41, DaySix.PartOne.run exampleInput)
 
   [<TestMethod>]
   member this.PartOnePuzzle() =
-    Assert.AreEqual<int>(4656, DaySix.partOne puzzleInput)
+    Assert.AreEqual<int>(4656, DaySix.PartOne.run puzzleInput)
+
+  [<TestMethod>]
+  member this.PartTwoExample() =
+    Assert.AreEqual<int>(6, DaySix.PartTwo.run exampleInput)
+
+  [<TestMethod>]
+  member this.PartTwoPuzzle() =
+    Assert.AreEqual<int>(6, DaySix.PartTwo.run puzzleInput)
