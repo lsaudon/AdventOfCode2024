@@ -82,7 +82,7 @@ module DaySix =
     | Empty -> '.'
 
   let printMap (map: Map<Position, Cell>) =
-    let (maxRow, maxCol) = getDimensions map
+    let maxRow, maxCol = getDimensions map
 
     [ 0..maxRow ]
     |> List.iter (fun row ->
@@ -111,19 +111,19 @@ module DaySix =
 
         if isObstruction map newP then
           let newD = d.Turn
-          let newGuard = (Guard(p, newD))
+          let newGuard = Guard(p, newD)
           let newMap = map |> Map.remove p |> Map.add p newGuard
           let newHistory = { Position = p; Direction = d } :: history
           newMap, newHistory
         else
-          let newGuard = (Guard(newP, d))
+          let newGuard = Guard(newP, d)
           let newMap = map |> Map.remove p |> Map.add newP newGuard
           let newHistory = { Position = p; Direction = d } :: history
           newMap, newHistory
 
     let run (input: string) : int =
       let mutable map = input |> parse
-      let (row, col) = getDimensions map
+      let row, col = getDimensions map
       maxRow <- row
       maxCol <- col
       let mutable history = []
@@ -150,12 +150,12 @@ module DaySix =
 
         if isObstruction map newP then
           let newD = d.Turn
-          let newGuard = (Guard(p, newD))
+          let newGuard = Guard(p, newD)
           let newMap = map |> Map.remove p |> Map.add p newGuard
           let newHistory = { Position = p; Direction = d } :: history
           newMap, newHistory, virtualObstruction
         else
-          let newGuard = (Guard(newP, d))
+          let newGuard = Guard(newP, d)
           let newMap = map |> Map.remove p |> Map.add newP newGuard
           let newHistory = { Position = p; Direction = d } :: history
           let neighborsOnTheRight = match d with
@@ -166,8 +166,8 @@ module DaySix =
           let mutable newVirtualObstruction = virtualObstruction
           let mutable stopSearch = false
           let mutable neighborsPosition = match d with
-                                          | North -> { Row = newP.Row;     Column = newP.Column + 1 }
-                                          | South -> { Row = newP.Row;     Column = newP.Column - 1 }
+                                          | North -> { Row = newP.Row; Column = newP.Column + 1 }
+                                          | South -> { Row = newP.Row; Column = newP.Column - 1 }
                                           | East ->  { Row = newP.Row + 1; Column = newP.Column }
                                           | West ->  { Row = newP.Row - 1; Column = newP.Column }
           while not stopSearch && isInBounds neighborsPosition do
@@ -179,29 +179,29 @@ module DaySix =
               let e = map |> Map.tryFind neighborsPosition
               match e with
               | None -> neighborsPosition <- match d with
-                                     | North -> { Row = neighborsPosition.Row;     Column = neighborsPosition.Column + 1 }
-                                     | South -> { Row = neighborsPosition.Row;     Column = neighborsPosition.Column - 1 }
-                                     | East ->  { Row = neighborsPosition.Row + 1; Column = neighborsPosition.Column }
-                                     | West ->  { Row = neighborsPosition.Row - 1; Column = neighborsPosition.Column }
+                                             | North -> { Row = neighborsPosition.Row; Column = neighborsPosition.Column + 1 }
+                                             | South -> { Row = neighborsPosition.Row; Column = neighborsPosition.Column - 1 }
+                                             | East ->  { Row = neighborsPosition.Row + 1; Column = neighborsPosition.Column }
+                                             | West ->  { Row = neighborsPosition.Row - 1; Column = neighborsPosition.Column }
               | Some cell -> match cell with
                              | Guard _ -> ()
                              | Obstruction ->
                                stopSearch <- true
                              | Empty ->
                                neighborsPosition <- match d with
-                                                             | North -> { Row = neighborsPosition.Row;     Column = neighborsPosition.Column + 1 }
-                                                             | South -> { Row = neighborsPosition.Row;     Column = neighborsPosition.Column - 1 }
-                                                             | East ->  { Row = neighborsPosition.Row + 1; Column = neighborsPosition.Column }
-                                                             | West ->  { Row = neighborsPosition.Row - 1; Column = neighborsPosition.Column }
+                                                    | North -> { Row = neighborsPosition.Row; Column = neighborsPosition.Column + 1 }
+                                                    | South -> { Row = neighborsPosition.Row; Column = neighborsPosition.Column - 1 }
+                                                    | East ->  { Row = neighborsPosition.Row + 1; Column = neighborsPosition.Column }
+                                                    | West ->  { Row = neighborsPosition.Row - 1; Column = neighborsPosition.Column }
           newMap, newHistory, newVirtualObstruction
 
     let run (input: string) : int =
       let mutable map = input |> parse
-      let (row, col) = getDimensions map
+      let row, col = getDimensions map
       maxRow <- row
       maxCol <- col
-      let mutable history = []
       let mutable guardInBounds = true
+      let mutable history = []
       let mutable virtualObstruction = 0
 
       while guardInBounds do
