@@ -44,7 +44,7 @@ module DayFour =
     let horizontal = grid.Length - 1
     for i in 0..horizontal do
       let vertical = grid[i].Length - 1
-      for j in 0..vertical  do
+      for j in 0..vertical do
         if grid[i].[j].Equals('A') then
           if i >= 1 && j >= 1 && i <= horizontal - 1 && j <= vertical - 1 then
             if grid[i-1].[j-1].Equals('M') && grid[i+1].[j+1].Equals('S') then
