@@ -5,6 +5,7 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 
 module DaySeven =
   type Total = uint64
+  type Operator = Add | Multiply | Merge
   type Numbers = uint64 array
   type Equation = Total * Numbers
   type Equations = Equation array
@@ -18,26 +19,26 @@ module DaySeven =
             numbers.Trim().Split(' ') |> Array.map uint64
         | _ -> failwith "Invalid input format")
 
-  let cartesianProduct (arrays: char array array) : char array array =
-    let combineAll (acc: 'a array array) arr =
+  let cartesianProduct (arrays: Operator array array) : Operator array array =
+    let combineAll (acc: Operator array array) arr =
         acc |> Array.collect (fun partialResult ->
             Array.map (fun newElem -> Array.append partialResult [|newElem|]) arr)
     Array.fold combineAll [|[||]|] arrays
   
-  let generateOperators (numberOfValue: int) : char array array =
-    Array.replicate (numberOfValue - 1) [|'+'; '*'|] |> cartesianProduct
-
   module PartOne =
-    let calculate (equation : Equation, operators : char array) : bool =
+    let generateOperators (numberOfValue: int) : Operator array array =
+      Array.replicate (numberOfValue - 1) [|Add; Multiply|] |> cartesianProduct
+
+    let calculate (equation : Equation, operators : Operator array) : bool =
       let total, numbers = equation
       let result = 
-          Array.zip operators numbers.[1..]
+          Array.zip operators numbers[1..]
           |> Array.fold (fun acc (op, num) ->
               match op with
-              | '+' -> acc + num
-              | '*' -> acc * num
+              | Add -> acc + num
+              | Multiply -> acc * num
               | _ -> acc
-          ) numbers.[0]
+          ) numbers[0]
       result = total
 
     let tryFindValidOperators equation operators =
@@ -56,9 +57,35 @@ module DaySeven =
                              0UL
 
   module PartTwo =
-    let run (input: string) : int =
-      input |> parseInput |> printfn "%A"
-      0
+    let generateOperators (numberOfValue: int) : Operator array array =
+      Array.replicate (numberOfValue - 1) [|Add; Multiply; Merge|] |> cartesianProduct
+
+    let calculate (equation : Equation, operators : Operator array) : bool =
+      let total, numbers = equation
+      let result = 
+          Array.zip operators numbers[1..]
+          |> Array.fold (fun acc (op, num) ->
+                match op with
+                | Add -> acc + num
+                | Multiply -> acc * num
+                | Merge -> uint64 (string acc + string num)
+              ) numbers[0]
+      result = total
+
+    let tryFindValidOperators equation operators =
+      operators |> Array.exists (fun ops -> calculate(equation, ops))
+
+    let run (input: string) : uint64 =
+      input |> parseInput |> Array.fold
+                             (fun acc equation ->
+                               let total, numbers = equation
+                               let operators = generateOperators numbers.Length
+                               if tryFindValidOperators equation operators then
+                                 acc + total
+                               else 
+                                 acc
+                             )
+                             0UL
 
 [<TestClass>]
 type DaySevenTest() =
@@ -936,8 +963,8 @@ type DaySevenTest() =
 
   [<TestMethod>]
   member this.PartTwoExample() =
-    Assert.AreEqual<int>(3749, DaySeven.PartTwo.run exampleInput)
+    Assert.AreEqual<uint64>(11387UL, DaySeven.PartTwo.run exampleInput)
 
   [<TestMethod>]
   member this.PartTwoPuzzle() =
-    Assert.AreEqual<int>(3749, DaySeven.PartTwo.run puzzleInput)
+    Assert.AreEqual<uint64>(146111650210682UL, DaySeven.PartTwo.run puzzleInput)
